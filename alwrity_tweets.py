@@ -20,28 +20,39 @@ def main():
     # Remove the extra spaces from margin top.
     st.markdown("""
         <style>
-               .block-container {
-                    padding-top: 0rem;
-                    padding-bottom: 0rem;
-                    padding-left: 1rem;
-                    padding-right: 1rem;
-                }
-        </style>
-        """, unsafe_allow_html=True)
-    st.markdown(f"""
-      <style>
-      [class="st-emotion-cache-7ym5gk ef3psqc12"]{{
-            display: inline-block;
-            padding: 5px 20px;
-            background-color: #4681f4;
-            color: #FBFFFF;
-            width: 300px;
-            height: 35px;
+                ::-webkit-scrollbar-track {
+        background: #e1ebf9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: #90CAF9;
+            border-radius: 10px;
+            border: 3px solid #e1ebf9;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64B5F6;
+        }
+
+        ::-webkit-scrollbar {
+            width: 16px;
+        }
+        div.stButton > button:first-child {
+            background: #1565C0;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
             text-align: center;
             text-decoration: none;
+            display: inline-block;
             font-size: 16px;
-            border-radius: 8px;’
-      }}
+            margin: 10px 2px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            font-weight: bold;
+        }
       </style>
     """
     , unsafe_allow_html=True)
@@ -54,61 +65,74 @@ def main():
     hide_streamlit_footer = '<style>#MainMenu {visibility: hidden;} footer {visibility: hidden;}</style>'
     st.markdown(hide_streamlit_footer, unsafe_allow_html=True)
 
+    st.title("✍️  Alwrity - AI Tweet/X Generator")
+
+    # Input section
     with st.expander("**PRO-TIP** - Read the instructions below.", expanded=True):
         col1, col2 = st.columns([5, 5])
         with col1:
             hook = st.text_input(
-                    label="What's the tweet about:(Hook)",
-                    placeholder="e.g., Discover the future of tech today!",
-                    help="Provide a compelling opening statement or question to grab attention."
+                label="**What's the tweet about:(Hook)**✨",
+                placeholder="e.g., Discover the future of tech today! 🚀",
+                help="Provide a compelling opening statement or question to grab attention."
             )
-
+    
         with col2:
-            # Collect user inputs with placeholders and help text
             target_audience = st.text_input(
-                label="Target Audience",
+                label="**Target Audience 🎯**",
                 placeholder="e.g., technology enthusiasts, travel lovers",
                 help="Describe the audience you want to target with this tweet."
             )
-
+        
+        col3, col4 = st.columns([5, 5])
+        with col3:
+            tone_style = st.selectbox(
+                label="**Tone & Style 🎨**",
+                options=['Humorous', 'Informative', 'Inspirational', 'Serious', 'Casual'],
+                help="Choose the tone and style of the tweet."
+            )
+            
+        with col4:
+            hashtags = st.text_input(
+                label="**Hashtags 📢**",
+                placeholder="e.g., #TechTrends, #TravelGoals",
+                help="Add 2-3 relevant hashtags to enhance visibility."
+            )
+    
+        call_to_action = st.text_input(
+            label="**Call to Action (CTA)** 🚀",
+            placeholder="e.g., Share, Retweet, Like. Retweet if you agree! Share your thoughts in the comments!",
+            help="Include a strong call to action to encourage engagement."
+        )
+    
+    # Button to generate tweets
     if st.button('**Write Tweets**'):
-        with st.status("Assigning AI professional to write your Google Ads copy..", expanded=True) as status:
-            if not target_audience or not hook:
+        with st.status("Assigning AI professional to write your tweets..", expanded=True) as status:
+            if not target_audience or not hook or not tone_style or not hashtags or not call_to_action:
                 st.error("🚫 Please provide all required inputs.")
             else:
-                response = tweet_writer(target_audience, hook)
+                response = tweet_writer(hook, target_audience, tone_style, hashtags, call_to_action)
                 if response:
                     st.subheader(f'**🧕👩: Your Final Tweets!**')
                     st.write(response)
                     st.write("\n\n\n\n\n\n")
                 else:
-                    st.error("💥**Failed to write Letter. Please try again!**")
+                    st.error("💥**Failed to generate tweets. Please try again!**")
 
 
-def tweet_writer(target_audience, hook):
-    """ Email project_update_writer """
+
+def tweet_writer(hook, target_audience, tone_style, hashtags, call_to_action):
+    """ Function to generate tweets using user inputs """
 
     prompt = f"""
     You are a social media expert creating tweets for an audience interested in {target_audience}. 
     Write 5 engaging, concise, and visually appealing tweets that each:
 
     1. Start with a compelling hook based on the following keywords: "{hook}"
-    2. Include a compelling call to action.
-    3. Use 2-3 relevant hashtags. 
-    4. Adopt a tone that matches the following options: 
-        - Humorous 
-        - Informative 
-        - Inspirational 
-        - Serious 
-        - Casual
+    2. Include a compelling call to action: "{call_to_action}"
+    3. Use 2-3 relevant hashtags: "{hashtags}" 
+    4. Adopt a tone that matches: {tone_style}
     5. Be under 100 characters (including spaces and punctuation). 
-
-    Here are some examples of call-to-actions to include:
-    - Retweet this if you agree!
-    - Share your thoughts in the comments!
-    - Learn more at [link] 
-    - Follow for more [topic] content
-    - Like if you're excited about [topic]
 
     Output each tweet separated by a newline.
     """
@@ -138,10 +162,10 @@ def generate_text_with_exception_handling(prompt):
         genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 
         generation_config = {
-            "temperature": 1,
+            "temperature": 0.7,
             "top_p": 0.95,
             "top_k": 0,
-            "max_output_tokens": 8192,
+            "max_output_tokens": 2096,
         }
 
         safety_settings = [
@@ -163,7 +187,7 @@ def generate_text_with_exception_handling(prompt):
             },
         ]
 
-        model = genai.GenerativeModel(model_name="gemini-1.5-flash-latest",
+        model = genai.GenerativeModel(model_name="gemini-1.5-flash",
                                       generation_config=generation_config,
                                       safety_settings=safety_settings)
 
